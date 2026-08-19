@@ -154,7 +154,12 @@ function viewTracker() {
     <div class="viewhead"><span class="tag">Tracker</span>
       <h1>Implementation, stage by stage</h1>
       <p class="lede">Last run ${datum(t.stand)} · ${t.laeufe} weekly ${t.laeufe === 1 ? "run" : "runs"}
-      since the baseline of ${datum(t.baseline)}.</p></div>
+      since the baseline of ${datum(t.baseline)}.</p>
+      ${(t.nie_geprueft || []).length ? `<div class="statebox warn">A run checks as many initiatives as it can
+      within a fixed time budget and then stops, so the baseline fills in over several runs.
+      <strong>${(t.nie_geprueft || []).length} of ${D.initiatives.length} initiatives have not been
+      checked even once</strong> and are shown at zero for that reason, not because nothing has
+      happened. They are first in line on the next run.</div>` : ""}</div>
 
     <div class="panel"><h2>How the percentage is produced</h2>
       <p class="readable">It is not an estimate. Each initiative has the same six stages, each worth a fixed

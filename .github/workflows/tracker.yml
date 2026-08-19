@@ -20,7 +20,11 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Das Skript setzt sich mit BUDGET_MIN seine eigene, kleinere Grenze und
+    # schreibt von sich aus aus, was es hat. Dieses Limit hier ist nur noch das
+    # Netz darunter -- es darf nie zuerst greifen, denn ein abgewuergter Job
+    # verwirft die bereits bezahlte Arbeit.
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
 
@@ -31,9 +35,15 @@ jobs:
       - name: Check the public record for each initiative
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BUDGET_MIN: "32"
+          PARALLEL: "5"
         run: node scripts/update-tracker.mjs
 
+      # always(): auch ein Teilergebnis wird festgehalten. Bricht der Schritt
+      # davor ab, ist das Geschriebene trotzdem etwas wert, und der naechste
+      # Lauf nimmt die noch nicht geprueften Initiativen zuerst.
       - name: Commit the result
+        if: always()
         run: |
           if git diff --quiet -- data/tracker.json data/history.jsonl; then
             echo "No change this week."

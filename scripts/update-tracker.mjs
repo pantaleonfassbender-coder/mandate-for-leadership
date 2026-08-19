@@ -109,11 +109,32 @@ async function frage(i) {
 }
 const warte = ms => new Promise(r => setTimeout(r, ms));
 
-let geaendert = 0, geprueft = 0, fehler = 0;
-const notizen = [];
+/* Ein Lauf muss nicht alle Initiativen schaffen.
+ *
+ * Der erste Lauf ist ins Job-Zeitlimit gelaufen und hat damit die gesamte
+ * bereits bezahlte Arbeit verworfen, weil der Commit-Schritt uebersprungen
+ * wurde. Deshalb setzt sich das Skript jetzt seine eigene Grenze, hoert von
+ * sich aus sauber auf und schreibt, was es hat. Was offen bleibt, kommt beim
+ * naechsten Lauf zuerst dran: die Reihenfolge richtet sich nach dem Alter der
+ * letzten Pruefung, nie Geprueftes zuerst. Ueber zwei, drei Laeufe ist damit
+ * alles einmal gesehen, danach ist es ein Nachfuehren.
+ */
+const BUDGET_MS = Number(process.env.BUDGET_MIN || 32) * 60000;
+const PARALLEL = Math.max(1, Number(process.env.PARALLEL || 5));
+const ENDE_UM = Date.now() + BUDGET_MS;
 
-for (const i of inits) {
-  if (NUR && i.id !== NUR) continue;
+let geaendert = 0, geprueft = 0, fehler = 0;
+const notizen = [], erledigt = new Set();
+
+const offen = inits
+  .filter(i => !NUR || i.id === NUR)
+  .sort((a, b) => {
+    const ta = (tracker.initiativen[a.id] || {}).zuletzt_geprueft || "";
+    const tb = (tracker.initiativen[b.id] || {}).zuletzt_geprueft || "";
+    return ta < tb ? -1 : ta > tb ? 1 : 0;
+  });
+
+async function bearbeite(i) {
   const vorher = JSON.stringify(tracker.initiativen[i.id]);
   let antwort;
   try {
@@ -121,9 +142,10 @@ for (const i of inits) {
   } catch (e) {
     console.error(`  ! ${i.id}: ${e.message}`);
     fehler++;
-    continue;
+    return;
   }
   geprueft++;
+  erledigt.add(i.id);
 
   const eintrag = tracker.initiativen[i.id] || { stufen: {}, berichtet: [] };
   let punkte = 0;
@@ -153,21 +175,49 @@ for (const i of inits) {
     notizen.push(`${i.id}: ${eintrag.prozent}%`);
   }
   console.log(`  ${i.id.padEnd(26)} ${String(eintrag.prozent).padStart(3)}%`);
-  await warte(1500);
 }
+
+let zeiger = 0;
+async function arbeiter(n) {
+  await warte(n * 900);                      /* Start staffeln, nicht im Pulk */
+  while (zeiger < offen.length) {
+    if (Date.now() > ENDE_UM) {
+      console.log(`  (Zeitbudget erreicht, Arbeiter ${n} hoert auf)`);
+      return;
+    }
+    await bearbeite(offen[zeiger++]);
+  }
+}
+await Promise.all(Array.from({ length: PARALLEL }, (_, n) => arbeiter(n)));
+
+/* Zwei verschiedene Dinge, die sich leicht verwechseln lassen:
+ * uebersprungen = in DIESEM Lauf nicht geschafft (kann letzte Woche geprueft
+ * worden sein), nie_geprueft = ueberhaupt noch nie angesehen. Nur die zweite
+ * Zahl ist eine Luecke im Bestand; die erste ist blosse Arbeitsteilung. */
+const uebersprungen = offen.filter(i => !erledigt.has(i.id)).map(i => i.id);
+const nie_geprueft = inits
+  .filter(i => !((tracker.initiativen[i.id] || {}).zuletzt_geprueft))
+  .map(i => i.id);
 
 tracker.stand = heute;
 tracker.laeufe = (tracker.laeufe || 0) + 1;
+tracker.vollstaendig = uebersprungen.length === 0;
+tracker.uebersprungen = uebersprungen;
+tracker.nie_geprueft = nie_geprueft;
 writeFileSync("data/tracker.json", JSON.stringify(tracker));
 
-/* Verlaufszeile: eine Zeile je Lauf, damit sich Kurven zeichnen lassen. */
-const zeile = { datum: heute, lauf: tracker.laeufe,
+/* Verlaufszeile: eine Zeile je Lauf, damit sich Kurven zeichnen lassen.
+ * geprueft steht mit dabei, weil ein Teillauf die uebrigen Werte unveraendert
+ * stehen laesst -- ohne diese Zahl saehe das aus wie "nichts hat sich getan". */
+const zeile = { datum: heute, lauf: tracker.laeufe, geprueft,
+  uebersprungen: uebersprungen.length, nie_geprueft: nie_geprueft.length,
   werte: Object.fromEntries(Object.entries(tracker.initiativen).map(([k, v]) => [k, v.prozent])) };
 appendFileSync("data/history.jsonl", JSON.stringify(zeile) + "\n");
 
 const werte = Object.values(tracker.initiativen).map(v => v.prozent);
 const mittel = werte.reduce((a, b) => a + b, 0) / Math.max(1, werte.length);
-console.log(`\nchecked ${geprueft}, changed ${geaendert}, errors ${fehler}, mean ${mittel.toFixed(1)}%`);
-writeFileSync("/tmp/tracker-summary.txt",
-  `checked ${geprueft}, changed ${geaendert}, errors ${fehler}, mean ${mittel.toFixed(1)}%\n\n`
-  + notizen.slice(0, 40).join("\n"));
+const kopf = `checked ${geprueft}, changed ${geaendert}, errors ${fehler}, `
+  + `skipped ${uebersprungen.length}, never checked ${nie_geprueft.length}, `
+  + `mean ${mittel.toFixed(1)}%`;
+console.log(`\n${kopf}`);
+writeFileSync("/tmp/tracker-summary.txt", kopf + "\n\n" + notizen.slice(0, 40).join("\n"));

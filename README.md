@@ -67,8 +67,23 @@ commit history is the audit trail. Every change to every score is dated,
 attributable and reversible, and anyone can read what the evidence was before
 and after.
 
+A run does not have to finish. Each initiative costs a model call with several
+web searches, and sixty of them do not reliably fit in one job, so the script
+gives itself a time budget (`BUDGET_MIN`, default 32), stops of its own accord
+when it runs out, and writes what it has. Initiatives are taken **oldest check
+first**, so what a run leaves undone is what the next run starts with, and the
+baseline fills in over the first two or three weeks. Until then the tracker page
+says plainly how many initiatives have never been checked, because a zero from a
+missing check and a zero from an absent record look identical and must not be
+confused.
+
+The first attempt got this wrong: the job was killed at its 45-minute limit and
+the commit step was skipped, which threw away every result already paid for.
+Hence the budget inside the script, and `if: always()` on the commit.
+
 Needs `ANTHROPIC_API_KEY` as a repository secret. Run it by hand from the
 Actions tab, or set `ONLY_ID=<initiative-id>` locally to check a single entry.
+`PARALLEL` (default 5) sets how many initiatives are in flight at once.
 
 The job uses a language model with web search. It can miss things and it can
 misread a document; it is instructed to leave a stage unevidenced when in doubt,
