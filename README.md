@@ -49,6 +49,21 @@ once, weighted once, and applied identically to all 60 initiatives:
 | In force | 25 | effective date passed, not stayed |
 | Durable | 10 | upheld on review, or codified |
 
+**The host is not enough.** A citation can sit on federalregister.gov, be
+perfectly well formed, and still document nothing: the first live run attached
+the right short name to the wrong document number twice, so
+`.../2025-02007/unleashing-american-energy` in fact pointed at *Protecting the
+Meaning and Value of American Citizenship*. Federal Register sources are
+therefore resolved against that publication's open API — the document number
+must exist, and the name in the citation must match the real title, or the
+stage does not count and keeps the reason. That covers the largest block of
+evidence; Congress.gov and GovInfo citations are checked for host only, which
+is a known gap and is stated here rather than left to be discovered.
+
+`node scripts/verify-sources.mjs` applies the same check to what is already
+published, without a model and without an API key; `--probe` reports without
+writing.
+
 Two rules make it checkable. **A stage counts only on a primary source** — the
 Federal Register, Congress.gov, GovInfo, a court docket, the acting agency.
 Press reporting is recorded against the initiative as *reported, not counted*

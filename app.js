@@ -62,7 +62,10 @@ function quelleChip(v) {
   if (!v || !v.quelle) return "";
   let host = v.quelle;
   try { host = new URL(v.quelle).hostname.replace(/^www\./, ""); } catch (e) {}
-  return `<a class="chip sm" href="${esc(v.quelle)}" target="_blank" rel="noopener">${esc(host)}</a>`;
+  /* Der Titel steht dabei, wo er maschinell bestaetigt wurde: er ist das,
+     woran sich in Sekunden nachsehen laesst, ob die Quelle traegt. */
+  return `<a class="chip sm" href="${esc(v.quelle)}" target="_blank" rel="noopener">${esc(host)}</a>`
+    + (v.quelltitel ? `<br><span class="fine">${esc(v.quelltitel)}</span>` : "");
 }
 
 /* ============================================================ OVERVIEW */
@@ -272,7 +275,8 @@ function viewInitiative(id) {
         const status = v.rueckgaengig ? "<span class='rev'>reversed</span>"
           : v.belegt ? "<span class='on'>documented</span>" : "<span class='off'>not documented</span>";
         return `<tr><td>${esc(st.titel)}</td><td class="num">${st.gewicht}</td>
-          <td>${status}${v.notiz ? `<br><span class="fine">${esc(v.notiz)}</span>` : ""}</td>
+          <td>${status}${v.notiz ? `<br><span class="fine">${esc(v.notiz)}</span>` : ""}${
+            v.verworfen ? `<br><span class="fine">Source rejected on checking: ${esc(v.verworfen)}</span>` : ""}</td>
           <td>${quelleChip(v)}</td></tr>`;
       }).join("")}</tbody></table>
     </div>

@@ -14,6 +14,7 @@
  * tracker's audit trail.
  */
 import { readFileSync, writeFileSync, appendFileSync, existsSync } from "node:fs";
+import { istFR, pruefeFR } from "./fr.mjs";
 
 const KEY = process.env.ANTHROPIC_API_KEY;
 if (!KEY) { console.error("ANTHROPIC_API_KEY is not set."); process.exit(1); }
@@ -151,14 +152,25 @@ async function bearbeite(i) {
   let punkte = 0;
   for (const st of schema.stufen) {
     const a = (antwort.stages || {})[st.id] || {};
-    const url = typeof a.url === "string" ? a.url : null;
-    /* Die entscheidende Pruefung: ohne Primaerquelle keine Stufe. */
-    const gilt = !!a.documented && !!url && istPrimaer(url);
+    let url = typeof a.url === "string" ? a.url : null;
+    /* Erste Pruefung: ohne Primaerquelle keine Stufe. */
+    let gilt = !!a.documented && !!url && istPrimaer(url);
+    /* Zweite Pruefung, wo sie moeglich ist: ist das Dokument auch das
+       behauptete? Ein richtiger Kurzname an einer falschen Nummer ergibt eine
+       wohlgeformte Quelle, die nichts belegt. */
+    let quelltitel = null, verworfen = null;
+    if (gilt && istFR(url)) {
+      const pr = await pruefeFR(url);
+      if (pr.ok) { url = pr.url || url; quelltitel = pr.titel || null; }
+      else { gilt = false; verworfen = pr.grund; }
+    }
     const rev = !!a.reversed;
     eintrag.stufen[st.id] = {
       belegt: gilt, rueckgaengig: rev && gilt,
       quelle: gilt ? url : null,
+      quelltitel,
       notiz: typeof a.note === "string" ? a.note.slice(0, 240) : null,
+      verworfen,
     };
     if (gilt && !rev) punkte += st.gewicht;
   }
