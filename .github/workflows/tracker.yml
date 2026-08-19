@@ -1,0 +1,49 @@
+name: Weekly tracker update
+
+# The point of running this as a committing job rather than a background
+# service is the audit trail: every change to every score lands in the
+# repository history, dated and attributable, and can be read back.
+
+on:
+  schedule:
+    # Mondays, 06:15 UTC. Cron in Actions is best-effort and may run late.
+    - cron: "15 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tracker
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check the public record for each initiative
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/update-tracker.mjs
+
+      - name: Commit the result
+        run: |
+          if git diff --quiet -- data/tracker.json data/history.jsonl; then
+            echo "No change this week."
+            exit 0
+          fi
+          git config user.name "tracker"
+          git config user.email "tracker@users.noreply.github.com"
+          git add data/tracker.json data/history.jsonl
+          SUMMARY=$(cat /tmp/tracker-summary.txt 2>/dev/null | head -1)
+          git commit -m "Weekly tracker run $(date -u +%Y-%m-%d)" \
+                     -m "${SUMMARY:-no summary}" \
+                     -m "Automated run. Every stage counted here carries a primary-source URL in data/tracker.json; press reporting is recorded separately and scores nothing."
+          git push

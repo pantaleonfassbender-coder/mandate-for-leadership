@@ -1,0 +1,96 @@
+{
+ "stufen": [
+  {
+   "id": "authority",
+   "gewicht": 10,
+   "titel": "Authority in place",
+   "beleg": "An office, appointee or delegation exists that could carry the proposal out."
+  },
+  {
+   "id": "stated",
+   "gewicht": 10,
+   "titel": "Intent stated",
+   "beleg": "An executive order, presidential memorandum, budget request or official agency statement adopts the proposal as policy."
+  },
+  {
+   "id": "initiated",
+   "gewicht": 20,
+   "titel": "Formal process opened",
+   "beleg": "A step with a public docket: a proposed rule in the Federal Register, a withdrawal of guidance, a reduction-in-force notice, a filed litigation position."
+  },
+  {
+   "id": "adopted",
+   "gewicht": 25,
+   "titel": "Adopted",
+   "beleg": "A final rule, an enacted statute, a signed rescission, a completed programme termination."
+  },
+  {
+   "id": "in_force",
+   "gewicht": 25,
+   "titel": "In force",
+   "beleg": "The effective date has passed and no court order suspends it."
+  },
+  {
+   "id": "durable",
+   "gewicht": 10,
+   "titel": "Durable",
+   "beleg": "Upheld on judicial review, or written into statute, so that it survives a change of administration."
+  }
+ ],
+ "felder": [
+  {
+   "id": "exec",
+   "titel": "Executive power and the civil service"
+  },
+  {
+   "id": "defense",
+   "titel": "Defence, intelligence and foreign affairs"
+  },
+  {
+   "id": "border",
+   "titel": "Immigration and the border"
+  },
+  {
+   "id": "energy",
+   "titel": "Energy, environment and public lands"
+  },
+  {
+   "id": "health",
+   "titel": "Health and human services"
+  },
+  {
+   "id": "edu",
+   "titel": "Education"
+  },
+  {
+   "id": "econ",
+   "titel": "Economy, trade and financial regulation"
+  },
+  {
+   "id": "media",
+   "titel": "Media, communications and elections"
+  },
+  {
+   "id": "other",
+   "titel": "Further departments"
+  }
+ ],
+ "promises": [
+  {
+   "nr": 1,
+   "titel": "Restore the family as the centerpiece of American life and protect our children"
+  },
+  {
+   "nr": 2,
+   "titel": "Dismantle the administrative state and return self-governance to the American people"
+  },
+  {
+   "nr": 3,
+   "titel": "Defend our nation's sovereignty, borders, and bounty against global threats"
+  },
+  {
+   "nr": 4,
+   "titel": "Secure our God-given individual rights to live freely"
+  }
+ ]
+}

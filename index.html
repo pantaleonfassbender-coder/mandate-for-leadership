@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mandate for Leadership · Documentation and Implementation Tracker</title>
+<meta name="description" content="A neutral documentation apparatus for Mandate for Leadership: The Conservative Promise (Project 2025): its structure, its 773 recommendations with page anchors, and a weekly implementation tracker scoring 60 initiatives against a fixed ladder of publicly documented stages, each requiring a primary source.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='5' y='5' width='22' height='22' rx='2' fill='none' stroke='%23c9a227' stroke-width='2'/><line x1='10' y1='12' x2='22' y2='12' stroke='%23c9a227' stroke-width='2'/><line x1='10' y1='17' x2='22' y2='17' stroke='%239db8a4' stroke-width='2'/><line x1='10' y1='22' x2='16' y2='22' stroke='%239db8a4' stroke-width='2'/></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="#/overview">
+    <span class="mark">▤</span>
+    <span class="brandtext">
+      <strong>Mandate for Leadership</strong>
+      <em>Documentation and implementation tracker</em>
+    </span>
+  </a>
+  <nav id="nav">
+    <a href="#/overview" data-v="overview">Overview</a>
+    <a href="#/tracker" data-v="tracker">Tracker</a>
+    <a href="#/initiatives" data-v="initiatives">Initiatives</a>
+    <a href="#/structure" data-v="structure">Structure</a>
+    <a href="#/register" data-v="register">Register</a>
+    <a href="#/concordance" data-v="concordance">Concordance</a>
+    <a href="#/method" data-v="method">Method</a>
+  </nav>
+  <button id="unlockBtn" class="unlock" title="Open your own copy">
+    <span id="unlockDot" class="dot"></span><span id="unlockLabel">locked</span>
+  </button>
+</header>
+
+<main id="view"></main>
+
+<footer>
+  <p><a href="#/method">Method, sources and limits →</a> · <a href="#/privacy">Privacy</a> · <a href="#/imprint">Legal notice</a></p>
+  <p><strong>What this site does and does not do.</strong> It documents two things: what the document
+  proposes, with a page citation, and what the public record shows, with a primary source. It offers no
+  assessment of either. Correspondence between a proposal and a government action is <em>not</em> evidence
+  that the document caused it, and the tracker measures correspondence only — not the administration's
+  record as a whole.</p>
+  <p><strong>Rights.</strong> This site ships <em>no running text</em> of the document. Indexed: Paul Dans
+  and Steven Groves (eds.), <em>Mandate for Leadership: The Conservative Promise</em> (Washington, DC: The
+  Heritage Foundation, 2023), ISBN 978-0-89195-174-2. © 2023 by The Heritage Foundation, all rights
+  reserved. This site is an independent project and is not affiliated with, endorsed by, or connected to
+  The Heritage Foundation, the Project 2025 Presidential Transition Project, any of the volume's authors,
+  or any government body.</p>
+</footer>
+
+<div id="unlockModal" class="modal" hidden>
+  <div class="modalbox">
+    <button class="closex" id="closeUnlock">×</button>
+    <h2>Open your own copy</h2>
+    <p>The concordance runs <strong>entirely in your browser</strong>. The document is under copyright, so
+    its text is not shipped here; it is, however, published as a free download by its publisher. Open your
+    PDF and this page reads its text layer, stores it in your own device storage, and uploads nothing.</p>
+    <label class="drop" id="drop">
+      <input type="file" id="pdfInput" accept="application/pdf" hidden>
+      <span class="dropicon">⇪</span>
+      <span>Drop the PDF here, or click to choose</span>
+      <small>922 pages · about 4.7 MB · a few seconds to read</small>
+    </label>
+    <div id="unlockProgress" hidden>
+      <div class="bar"><div id="barFill"></div></div>
+      <p id="progressText" class="mono"></p>
+    </div>
+    <div id="unlockState" class="statebox"></div>
+    <div class="modalfoot">
+      <button id="forgetBtn" class="ghost">Clear stored text</button>
+      <span class="fine">Page anchors were built against the 922-page edition of July 2024. A different
+      printing will still search, but its pages will not line up.</span>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
