@@ -54,7 +54,9 @@ function stufenReihe(id) {
   return `<div class="stufen">${D.schema.stufen.map(st => {
     const v = s.stufen[st.id] || {};
     const cls = v.rueckgaengig ? "rev" : (v.belegt ? "on" : "off");
-    const t = v.rueckgaengig ? "reversed" : (v.belegt ? "documented" : "not documented");
+    const t = v.rueckgaengig ? "reversed"
+      : v.belegt ? (v.bewahrt ? "documented (source held from an earlier run)" : "documented")
+      : "not documented";
     return `<span class="st ${cls}" title="${esc(st.titel)} — ${t}">${st.gewicht}</span>`;
   }).join("")}</div>`;
 }
@@ -276,7 +278,8 @@ function viewInitiative(id) {
           : v.belegt ? "<span class='on'>documented</span>" : "<span class='off'>not documented</span>";
         return `<tr><td>${esc(st.titel)}</td><td class="num">${st.gewicht}</td>
           <td>${status}${v.notiz ? `<br><span class="fine">${esc(v.notiz)}</span>` : ""}${
-            v.verworfen ? `<br><span class="fine">Source rejected on checking: ${esc(v.verworfen)}</span>` : ""}</td>
+            v.verworfen ? `<br><span class="fine">Source rejected on checking: ${esc(v.verworfen)}</span>` : ""}${
+            v.bewahrt && v.belegt ? `<br><span class="fine">Source held from an earlier run (not re-found on ${esc(v.bewahrt)}); it remains the evidence until reversed or rejected.</span>` : ""}</td>
           <td>${quelleChip(v)}</td></tr>`;
       }).join("")}</tbody></table>
     </div>
@@ -474,6 +477,13 @@ function viewMethod() {
       commit. The commit history is therefore the tracker's audit trail: every change to every score is
       dated, attributable and reversible, and anyone can see what the evidence was before and after. That
       is the reason for choosing this arrangement over a database that would show only the current state.</p>
+      <p class="readable"><strong>Once verified, evidence stays.</strong> The weekly search is not
+      deterministic: the same Federal Register document can be found one week and missed the next, and
+      in the first two runs that alone moved 35 of 60 scores, by up to seventy points, in five days.
+      A documented order does not undo itself by being missed by a search — so a stage, once documented
+      with a verified primary source, keeps that source until a reversal is documented or the source
+      fails checking. Scores move up freely; they move down only for a stated reason, and a stage riding
+      on an earlier find says so beside its source.</p>
       <p class="readable">The job uses a language model with web search. It can miss things, and it can
       misread a document. It is instructed to leave a stage unevidenced when in doubt rather than to guess,
       because a false negative here is a gap and a false positive is a false claim. Every stage it marks

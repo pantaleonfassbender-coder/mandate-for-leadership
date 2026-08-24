@@ -125,7 +125,7 @@ const PARALLEL = Math.max(1, Number(process.env.PARALLEL || 5));
 const ENDE_UM = Date.now() + BUDGET_MS;
 
 let geaendert = 0, geprueft = 0, fehler = 0;
-const notizen = [], erledigt = new Set();
+const notizen = [], erledigt = new Set(), fehlerListe = [];
 
 const offen = inits
   .filter(i => !NUR || i.id === NUR)
@@ -143,12 +143,18 @@ async function bearbeite(i) {
   } catch (e) {
     console.error(`  ! ${i.id}: ${e.message}`);
     fehler++;
+    /* Der Grund gehoert in den Datenbestand, nicht nur ins fluechtige Log:
+       "errors 2" ohne Namen und Ursache ist beim naechsten Blick wertlos. */
+    fehlerListe.push(i.id);
+    const alt = tracker.initiativen[i.id];
+    if (alt) alt.letzter_fehler = { datum: heute, meldung: String(e.message).slice(0, 160) };
     return;
   }
   geprueft++;
   erledigt.add(i.id);
 
   const eintrag = tracker.initiativen[i.id] || { stufen: {}, berichtet: [] };
+  const vorherige = eintrag.stufen || {};
   let punkte = 0;
   for (const st of schema.stufen) {
     const a = (antwort.stages || {})[st.id] || {};
@@ -165,6 +171,28 @@ async function bearbeite(i) {
       else { gilt = false; verworfen = pr.grund; }
     }
     const rev = !!a.reversed;
+    const alt = vorherige[st.id];
+
+    /* Nicht wiedergefunden ist nicht widerlegt. Die Wochensuche ist
+     * nichtdeterministisch: derselbe Federal-Register-Eintrag wird in einer
+     * Woche gefunden und in der naechsten verfehlt, und ohne diese Regel
+     * schwankten 35 von 60 Werten binnen fuenf Tagen um bis zu 70 Punkte —
+     * reine Suchvarianz, die wie Weltgeschehen aussah. Eine frueher belegte
+     * Stufe behaelt deshalb ihre gepruefte Quelle, bis eine Ruecknahme
+     * dokumentiert ist oder die Quellpruefung sie verwirft. Herauf geht es
+     * frei; herunter nur mit Grund. `bewahrt` sagt dem Leser, dass der Beleg
+     * aus einem frueheren Lauf getragen wird. */
+    if (!gilt && alt && alt.belegt && !alt.rueckgaengig) {
+      if (rev) {
+        eintrag.stufen[st.id] = { ...alt, rueckgaengig: true, bewahrt: heute,
+          notiz: typeof a.note === "string" ? a.note.slice(0, 240) : alt.notiz };
+      } else {
+        eintrag.stufen[st.id] = { ...alt, bewahrt: heute };
+        punkte += st.gewicht;
+      }
+      continue;
+    }
+
     eintrag.stufen[st.id] = {
       belegt: gilt, rueckgaengig: rev && gilt,
       quelle: gilt ? url : null,
@@ -176,6 +204,7 @@ async function bearbeite(i) {
   }
   eintrag.prozent = punkte;
   eintrag.zuletzt_geprueft = heute;
+  delete eintrag.letzter_fehler;
   eintrag.berichtet = Array.isArray(antwort.reported)
     ? antwort.reported.filter(x => x && x.url).slice(0, 5)
         .map(x => ({ url: x.url, titel: (x.title || "").slice(0, 160), datum: x.date || null }))
@@ -228,7 +257,8 @@ appendFileSync("data/history.jsonl", JSON.stringify(zeile) + "\n");
 
 const werte = Object.values(tracker.initiativen).map(v => v.prozent);
 const mittel = werte.reduce((a, b) => a + b, 0) / Math.max(1, werte.length);
-const kopf = `checked ${geprueft}, changed ${geaendert}, errors ${fehler}, `
+const kopf = `checked ${geprueft}, changed ${geaendert}, `
+  + `errors ${fehler}${fehlerListe.length ? ` (${fehlerListe.join(", ")})` : ""}, `
   + `skipped ${uebersprungen.length}, never checked ${nie_geprueft.length}, `
   + `mean ${mittel.toFixed(1)}%`;
 console.log(`\n${kopf}`);

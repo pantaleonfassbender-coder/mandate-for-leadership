@@ -64,12 +64,23 @@ is a known gap and is stated here rather than left to be discovered.
 published, without a model and without an API key; `--probe` reports without
 writing.
 
-Two rules make it checkable. **A stage counts only on a primary source** — the
+Three rules make it checkable. **A stage counts only on a primary source** — the
 Federal Register, Congress.gov, GovInfo, a court docket, the acting agency.
 Press reporting is recorded against the initiative as *reported, not counted*
-and scores nothing, which makes the tracker deliberately lag the news. And
-**reversal is representable**: a stage that is enjoined, vacated, rescinded or
-superseded is marked reversed, its points removed, the entry left visible.
+and scores nothing, which makes the tracker deliberately lag the news.
+**Reversal is representable**: a stage that is enjoined, vacated, rescinded or
+superseded is marked reversed, its points removed, the entry left visible. And
+**once verified, evidence stays**. The weekly search is not deterministic: the
+same Federal Register document can be found one week and missed the next, and
+in the first two runs that alone moved 35 of 60 scores — by up to seventy
+points — in five days, which is exactly the drift-without-cause this design
+exists to prevent. A documented order does not undo itself by being missed by
+a search, so a stage keeps its verified source until a reversal is documented
+or the source fails checking. Scores move up freely; they move down only for a
+stated reason. A stage riding on an earlier find carries a `bewahrt` date in
+the data and says so on the page; `scripts/merge-earlier-evidence.mjs` applies
+the same rule to already published data, which is how the run of 2026-08-24
+was repaired.
 
 ## The weekly run
 
