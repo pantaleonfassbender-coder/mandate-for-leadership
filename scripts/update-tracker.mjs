@@ -25,7 +25,7 @@ const BASE = "https://api.anthropic.com/v1/messages";
 const schema = JSON.parse(readFileSync("data/schema.json", "utf8"));
 const inits = JSON.parse(readFileSync("data/initiatives.json", "utf8"));
 const tracker = JSON.parse(readFileSync("data/tracker.json", "utf8"));
-const heute = new Date().toISOString().slice(0, 10);
+const heute = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()) /* ET-Kalendertag: der Aktenbestand und die Leser sind amerikanisch; das UTC-Datum liefe abends ET einen Tag voraus */;
 
 /* Nur diese Hosts belegen eine Stufe. Presse wird gesondert gefuehrt. */
 const PRIMAER = [

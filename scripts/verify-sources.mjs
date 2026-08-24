@@ -53,6 +53,6 @@ if (protokoll.length) console.log("\n" + protokoll.join("\n"));
 console.log(`\nMittelwert jetzt ${mittel.toFixed(1)}%`);
 
 if (probe) { console.log("\n(--probe: nichts geschrieben)"); process.exit(0); }
-tracker.quellen_geprueft = new Date().toISOString().slice(0, 10);
+tracker.quellen_geprueft = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()) /* ET-Kalendertag: der Aktenbestand und die Leser sind amerikanisch; das UTC-Datum liefe abends ET einen Tag voraus */;
 writeFileSync("data/tracker.json", JSON.stringify(tracker));
 console.log("data/tracker.json geschrieben.");

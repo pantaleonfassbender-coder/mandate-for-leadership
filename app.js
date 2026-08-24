@@ -10,7 +10,15 @@ export const esc = s => String(s ?? "").replace(/[&<>"']/g, m =>
 export const nf = n => new Intl.NumberFormat("en-GB").format(n);
 const el = h => { const t = document.createElement("template"); t.innerHTML = h.trim(); return t.content.firstElementChild; };
 export const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-const datum = s => s ? new Date(s).toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" }) : "—";
+/* Dates in the data are calendar dates (US Eastern, where the record lives).
+   They must render as that calendar date for every reader: new Date("YYYY-MM-DD")
+   parses as UTC midnight, and toLocaleDateString would then shift it into the
+   reader's zone — a reader in New York would see every date one day early.
+   Formatting with timeZone:"UTC" passes the calendar date through untouched. */
+const datum = s => s
+  ? new Date(s + "T00:00:00Z").toLocaleDateString("en-US",
+      { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })
+  : "—";
 
 const HUE = ["#c9a227", "#9db8a4", "#c07a5a", "#a89bc4", "#7fa9c9", "#c9968f", "#8fb3a0", "#b9a06a", "#a0b6c9"];
 const feldColor = i => HUE[i % HUE.length];
@@ -159,7 +167,7 @@ function viewTracker() {
     <div class="viewhead"><span class="tag">Tracker</span>
       <h1>Implementation, stage by stage</h1>
       <p class="lede">Last run ${datum(t.stand)} · ${t.laeufe} weekly ${t.laeufe === 1 ? "run" : "runs"}
-      since the baseline of ${datum(t.baseline)}.</p>
+      since the baseline of ${datum(t.baseline)}. Dates are US Eastern.</p>
       ${(t.nie_geprueft || []).length ? `<div class="statebox warn">A run checks as many initiatives as it can
       within a fixed time budget and then stops, so the baseline fills in over several runs.
       <strong>${(t.nie_geprueft || []).length} of ${D.initiatives.length} initiatives have not been
@@ -279,7 +287,7 @@ function viewInitiative(id) {
         return `<tr><td>${esc(st.titel)}</td><td class="num">${st.gewicht}</td>
           <td>${status}${v.notiz ? `<br><span class="fine">${esc(v.notiz)}</span>` : ""}${
             v.verworfen ? `<br><span class="fine">Source rejected on checking: ${esc(v.verworfen)}</span>` : ""}${
-            v.bewahrt && v.belegt ? `<br><span class="fine">Source held from an earlier run (not re-found on ${esc(v.bewahrt)}); it remains the evidence until reversed or rejected.</span>` : ""}</td>
+            v.bewahrt && v.belegt ? `<br><span class="fine">Source held from an earlier run (not re-found on ${datum(v.bewahrt)}); it remains the evidence until reversed or rejected.</span>` : ""}</td>
           <td>${quelleChip(v)}</td></tr>`;
       }).join("")}</tbody></table>
     </div>
@@ -289,7 +297,7 @@ function viewInitiative(id) {
       can follow it, and it contributes nothing to the score, because a report is not a public act.</p>
       <ul class="toclist">${s.berichtet.map(b => `<li>
         <a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.titel || b.url)}</a>
-        <span class="fine">${esc(b.datum || "")}</span></li>`).join("")}</ul></div>` : ""}
+        <span class="fine">${/^\d{4}-\d{2}-\d{2}$/.test(b.datum || "") ? datum(b.datum) : esc(b.datum || "")}</span></li>`).join("")}</ul></div>` : ""}
 
     <div class="panel"><h2>What the document says</h2>
       <p class="readable">${esc(i.grundlage)}</p>

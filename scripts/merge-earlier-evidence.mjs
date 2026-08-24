@@ -26,7 +26,7 @@ if (!earlierPath) {
 const schema = JSON.parse(readFileSync("data/schema.json", "utf8"));
 const tracker = JSON.parse(readFileSync("data/tracker.json", "utf8"));
 const earlier = JSON.parse(readFileSync(earlierPath, "utf8"));
-const heute = new Date().toISOString().slice(0, 10);
+const heute = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()) /* ET-Kalendertag: der Aktenbestand und die Leser sind amerikanisch; das UTC-Datum liefe abends ET einen Tag voraus */;
 const gewicht = Object.fromEntries(schema.stufen.map(s => [s.id, s.gewicht]));
 
 let restauriert = 0, betroffen = 0;
