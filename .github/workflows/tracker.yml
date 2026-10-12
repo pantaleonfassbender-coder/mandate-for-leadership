@@ -6,8 +6,13 @@ name: Weekly tracker update
 
 on:
   schedule:
-    # Mondays, 06:15 UTC. Cron in Actions is best-effort and may run late.
+    # Mondays, 06:15 UTC. Cron in Actions is best-effort: since August 2026 GitHub has started this job six to
+    # eight hours late, and on 12 October not at all by the afternoon. So there are fallbacks on Monday afternoon
+    # and Tuesday morning; scripts/update-tracker.mjs lets only the first scheduled run of the week write and
+    # stops the others before any API call.
     - cron: "15 6 * * 1"
+    - cron: "41 16 * * 1"
+    - cron: "17 7 * * 2"
   workflow_dispatch:
 
 permissions:

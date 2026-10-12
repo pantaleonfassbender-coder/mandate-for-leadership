@@ -27,6 +27,16 @@ const inits = JSON.parse(readFileSync("data/initiatives.json", "utf8"));
 const tracker = JSON.parse(readFileSync("data/tracker.json", "utf8"));
 const heute = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()) /* ET-Kalendertag: der Aktenbestand und die Leser sind amerikanisch; das UTC-Datum liefe abends ET einen Tag voraus */;
 
+/* Mehrere Zeitplan-Versuche je Woche (GitHub startet Schedules oft Stunden spaet oder gar nicht): nur der erste
+ * schreibt. Ein geplanter Lauf bricht vor jedem API-Aufruf ab, wenn es fuer diese Woche (ab Montag, ET) schon eine
+ * Verlaufszeile gibt. Handstarts (workflow_dispatch) laufen immer. */
+if (process.env.GITHUB_EVENT_NAME === "schedule" && existsSync("data/history.jsonl")) {
+  const d = new Date(heute + "T12:00:00Z"), montag = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * 864e5).toISOString().slice(0, 10);
+  const zeilen = readFileSync("data/history.jsonl", "utf8").trim().split(String.fromCharCode(10)).filter(Boolean);
+  const letzte = zeilen.length ? JSON.parse(zeilen[zeilen.length - 1]).datum : "";
+  if (letzte >= montag) { console.log(`Already ran this week (${letzte}); nothing to do.`); process.exit(0); }
+}
+
 /* Nur diese Hosts belegen eine Stufe. Presse wird gesondert gefuehrt. */
 const PRIMAER = [
   "federalregister.gov", "congress.gov", "govinfo.gov", "whitehouse.gov",
